@@ -1,0 +1,10 @@
+Generic TimeToDate = 
+// Selected Date is Default Date when unfilitered
+    var currentDate = IF([_filtered] = FALSE(), [Selected Date], LASTDATE(ALLSELECTED('DATE'[Date])))
+    var startYear = DATE(YEAR(currentDate), 1, 1)
+    var endYear = DATE(YEAR(currentDate), 12,31)
+    var startMonth = DATE(YEAR(currentDate), MONTH(currentDate), 1)
+    var endMonth = EOMONTH(currentDate,0)
+    var startWeek = currentDate - WEEKDAY(currentDate,2) +1
+    var X = DATEDIFF(DATE(YEAR(currentDate), 1, 1 ), currentDate-1, DAY ) + 1
+        return CALCULATE("Generic Measure", DATESBETWEEN('DATE'[Date], startYear, endYear))
