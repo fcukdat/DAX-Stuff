@@ -1,0 +1,4 @@
+VAR currentDate = MAX('Operations Inventory History'[Effective_Date])
+VAR cumulativeTotal = CALCULATE(sum('Operations Inventory History'[SOH]), FILTER(ALL('DATE'),
+'DATE'[Date] <= currentDate))
+RETURN IF(MAX('DATE'[Date]) = currentDate, cumulativeTotal, BLANK())
