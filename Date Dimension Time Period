@@ -8,118 +8,123 @@ RETURN
     SELECTCOLUMNS(
         UNION
             (
-                // Rolling 13 Weeks
-                ADDCOLUMNS(
+            // Rolling 13 Weeks
+            ADDCOLUMNS(
                 GENERATE(
-                    SELECTCOLUMNS({"Rolling 13 Weeks"},"Period",[Value]) ,
+                    SELECTCOLUMNS({"Rolling 13 Weeks"},"Period",[Value]),
                     GENERATESERIES(
                         ThisStartWeek,
                         v_Today
                     )
-                ),"Axis Date",[Value]),
+                ),
+                "Axis Date",[Value]
+            ),
 
-                // Last 2 Months
-                ADDCOLUMNS(
+            // Last 2 Months
+            ADDCOLUMNS(
                 GENERATE(
-                    SELECTCOLUMNS({"Last 2 Months"},"Period",[Value]) ,
+                    SELECTCOLUMNS({"Last 2 Months"},"Period",[Value]),
                     GENERATESERIES(
                         DATE(ThisYear , ThisMonth - 2 , 1) ,
                         v_Today
                     )
-                ),"Axis Date",[Value]),
+                ),
+                "Axis Date",[Value]
+            ),
 
-                // Last 3 Months
-                ADDCOLUMNS(
+            // Last 3 Months
+            ADDCOLUMNS(
                 GENERATE(
-                    SELECTCOLUMNS({"Last 3 Months"},"Period",[Value]) ,
+                    SELECTCOLUMNS({"Last 3 Months"},"Period",[Value]),
                     GENERATESERIES(
                         DATE(ThisYear , ThisMonth - 3 , 1) ,
                         v_Today
                     )
-                ),"Axis Date",[Value]),
+                ),
+                "Axis Date",[Value]),
 
-                // Current Year
-                ADDCOLUMNS(
+            // Current Year
+            ADDCOLUMNS(
                 GENERATE(
-                    SELECTCOLUMNS({"Current Year"},"Period",[Value]) ,
+                    SELECTCOLUMNS({"Current Year"},"Period",[Value]),
                     GENERATESERIES(
                         DATE(ThisYear , 1 , 1) ,
                         v_Today
                     )
-                ),"Axis Date",[Value]),
+                ),
+                "Axis Date",[Value]),
 
-                // Prior Year
-                ADDCOLUMNS(
-                    GENERATE(
-                    SELECTCOLUMNS({"Prior Year"},"Period",[Value]) ,
+            // Prior Year
+            ADDCOLUMNS(
+                GENERATE(
+                SELECTCOLUMNS({"Prior Year"},"Period",[Value]) ,
+                GENERATESERIES(
+                        DATE(ThisYear-1 , 1 , 1) ,
+                        DATE(ThisYear,ThisMonth-12,ThisDay)
+                        )
+                    ),
+                "Axis Date",DATE(YEAR([Value]),MONTH([Value])+12,DAY([Value])
+                )
+            ),
+
+            // Last 28 Days
+            ADDCOLUMNS(
+                GENERATE(
+                    SELECTCOLUMNS({"Last 28 Days"},"Period",[Value]),
                     GENERATESERIES(
-                            DATE(ThisYear-1 , 1 , 1) ,
-                            DATE(ThisYear,ThisMonth-12,ThisDay)
+                        DATE(ThisYear , ThisMonth , ThisDay-28) ,
+                        v_Today-1
+                    )
+                ),
+                "Axis Date",[Value]
+            ),
+
+            // Totals YTD
+            
+                GENERATE(
+                SELECTCOLUMNS({"Totals YTD"},"Period",[Value]),
+                VAR BaseTable = 
+                    SELECTCOLUMNS(
+                        GENERATESERIES(
+                            DATE(ThisYear , 1 , 1) ,
+                            v_Today
+                            ),"D1",[Value]
+                    )
+                RETURN 
+                    SELECTCOLUMNS(
+                        GENERATE(
+                            BaseTable ,
+                            FILTER(
+                                SELECTCOLUMNS(BaseTable,"D2",[D1]) ,[D2]<=EARLIER([D1]))
                             )
-                        ),
-                    "Axis Date",DATE(YEAR([Value]),MONTH([Value])+12,DAY([Value])
+                        ,"Date",[D2] 
+                        ,"Axis Date",[D1]
                     )
                 ),
 
-                // Last 28 Days
-                ADDCOLUMNS(
-                    GENERATE(
-                    SELECTCOLUMNS({"Last 28 Days"},"Period",[Value]) ,
-                    GENERATESERIES(
-                            DATE(ThisYear , ThisMonth , ThisDay-28) ,
-                            v_Today-1
+            // Totals MTD
+            
+                GENERATE(
+                SELECTCOLUMNS({"Totals MTD"},"Period",[Value]) ,
+                VAR BaseTable = 
+                    SELECTCOLUMNS(
+                        GENERATESERIES(
+                            DATE(ThisYear , ThisMonth , 1) ,
+                            v_Today
+                            ),"D1",[Value]
+                    )
+                RETURN 
+                    SELECTCOLUMNS(
+                        GENERATE(
+                            BaseTable ,
+                            FILTER(
+                                SELECTCOLUMNS(BaseTable,"D2",[D1]) ,[D2]<=EARLIER([D1]))
                             )
-                        ),
-                        "Axis Date",[Value]
+                        ,"Date",[D2] 
+                        ,"Axis Date",[D1]
                     )
-,
-
-                // Totals YTD
-               
-                    GENERATE(
-                    SELECTCOLUMNS({"Totals YTD"},"Period",[Value]) ,
-                    VAR BaseTable = 
-                        SELECTCOLUMNS(
-                            GENERATESERIES(
-                                DATE(ThisYear , 1 , 1) ,
-                                v_Today
-                                ),"D1",[Value]
-                        )
-                    RETURN 
-                        SELECTCOLUMNS(
-                            GENERATE(
-                                BaseTable ,
-                                FILTER(
-                                    SELECTCOLUMNS(BaseTable,"D2",[D1]) ,[D2]<=EARLIER([D1]))
-                                )
-                            ,"Date",[D2] 
-                            ,"Axis Date",[D1]
-                        )
-                    ),
-
-                // Totals MTD
-               
-                    GENERATE(
-                    SELECTCOLUMNS({"Totals MTD"},"Period",[Value]) ,
-                    VAR BaseTable = 
-                        SELECTCOLUMNS(
-                            GENERATESERIES(
-                                DATE(ThisYear , ThisMonth , 1) ,
-                                v_Today
-                                ),"D1",[Value]
-                        )
-                    RETURN 
-                        SELECTCOLUMNS(
-                            GENERATE(
-                                BaseTable ,
-                                FILTER(
-                                    SELECTCOLUMNS(BaseTable,"D2",[D1]) ,[D2]<=EARLIER([D1]))
-                                )
-                            ,"Date",[D2] 
-                            ,"Axis Date",[D1]
-                        )
-                    )
-            ) ,   
+                )
+            ),   
         "Date" , [Value] ,
         "Period" , [Period] ,
         "Axis Date" , [Axis Date]
